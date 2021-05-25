@@ -1,41 +1,36 @@
 <script>
   import cls from "../classnames";
-  import { onMount, tick } from "svelte";
-  import { store } from './store'
-  import type { Node } from "../types";
+  import { tick } from "svelte";
+  import { store } from "./store";
+  import type { RenderableTree } from "../node";
+
   let editing = false;
   let textareaElement: HTMLTextAreaElement | undefined;
 
-  export let id: Node["id"];
-  export let content: Node["content"];
-  export let children: Node[];
+  export let id: string;
+  export let content: string;
+  export let children: RenderableTree[];
 
   async function handleRenderedContentClick() {
-    editing = true;
-    $store.editingNodeID = id
+    $store.node.editing_node_id = id;
   }
+
   function handleTextareaBlur() {
-    console.log("handle blur")
-    editing = false;
-    $store.editingNodeID = ""
+    $store.node.editing_node_id = "";
   }
 
-  onMount(() => {
-    console.log("nod id", id);
+  function handleTextareaChange(e: Event) {
+    $store.node.node_map.get(id).content = (e as any).target.value;
+  }
+
+  $: {
+    editing = $store.node.editing_node_id === id;
     if (editing) {
-      $store.editingNodeID = id
+      (async () => {
+        await tick();
+        textareaElement?.focus();
+      })();
     }
-  });
-
-  $: if ($store.editingNodeID === id) {
-    (async () => {
-      await tick()
-      textareaElement?.focus();
-    })()
-  }
-
-  function handleTextareaChange(e) {
-    $store.nodes[id].content = e.target.value
   }
 </script>
 
@@ -71,13 +66,12 @@
       {content}
     </div>
   </div>
-  <!-- render children -->
   {#if children.length > 0}
     <div class="pl-3">
       {#each children as child}
         <svelte:self
           id={child.id}
-          content={child.content}
+          content={$store.node.node_map.get(child.id).content}
           children={child.children}
         />
       {/each}

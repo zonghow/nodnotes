@@ -1,31 +1,42 @@
 <script lang="typescript">
   import { onMount } from "svelte";
+  import { store, initNodeMap } from "./store";
   import Node from "./node.svelte";
-  import { store, renderableTree } from "./store";
-  import { registerHotkeys, hotkeyEE, Hotkey } from "../hotkey";
+  import * as hk from "../hotkey";
+  import { map2tree } from "../node";
+  import type { RenderableTree } from "../node";
 
+  let tree: RenderableTree | undefined;
+  $: if ($store.node.node_map.size && $store.node.root_node_id) {
+    tree = map2tree($store.node.node_map, $store.node.root_node_id);
+    console.log("tree", tree);
+  }
   onMount(() => {
-    registerHotkeys();
-    hotkeyEE.on(Hotkey.UP.eekey, () => {
-      console.log("up");
-      console.log($store.editingNodeID)
+    initNodeMap();
+    hk.Down.on(() => {
+      console.log("down");
     });
-    hotkeyEE.on(Hotkey.INDENT.eekey, () => {
+    hk.Indent.on(() => {
       console.log("indent");
-      console.log($store.editingNodeID)
     });
-    hotkeyEE.on(Hotkey.UNINDENT.eekey, () => {
-      console.log("unindent");
-      console.log($store.editingNodeID)
+    hk.Unindent.on(() => {
+      console.log("unindend");
+    });
+    hk.Up.on(() => {
+      console.log("up");
     });
   });
 </script>
 
 <div>
-  {#if renderableTree}
-    <input bind:value={$renderableTree.content} />
-    {#each $renderableTree.children as child}
-      <Node id={child.id} content={child.content} children={child.children} />
+  {#if tree}
+    <input class="text-2xl" value={$store.node.node_map.get(tree.id).content} />
+    {#each tree.children as child}
+      <Node
+        id={child.id}
+        content={$store.node.node_map.get(child.id).content}
+        children={child.children}
+      />
     {/each}
   {/if}
 </div>

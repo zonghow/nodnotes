@@ -1,32 +1,23 @@
 import hotkeys from "hotkeys-js";
 import { createEE } from "./ee";
 
-const ee = createEE();
-
-export const Hotkey = {
-  UP: {
-    eekey: Symbol("up"),
-    keys: ["up", "ctrl+p"],
-  },
-  INDENT: {
-    eekey: Symbol("indent"),
-    keys: ["tab"],
-  },
-  UNINDENT: {
-    eekey: Symbol("unindent"),
-    keys: ["shift+tab"],
-  },
-};
-
-function register() {
-  hotkeys.filter = () => true;
-  Object.values(Hotkey).forEach((hk) => {
-    hotkeys(hk.keys.join(","), (e, handler) => {
-      e.preventDefault();
-      ee.emit(hk.eekey);
-    });
+function createHotkey(keys: string[]) {
+  const ee = createEE();
+  const symbol = Symbol();
+  hotkeys(keys.join(","), (e: KeyboardEvent) => {
+    e.preventDefault();
+    ee.emit(symbol);
   });
+  return {
+    on: (callback: () => any) => {
+      ee.on(symbol, callback);
+    },
+  };
 }
 
-export const hotkeyEE = ee;
-export const registerHotkeys = register;
+const Up = createHotkey(["up", "ctrl+p"]);
+const Down = createHotkey(["down", "ctrl+n"]);
+const Indent = createHotkey(["tab"]);
+const Unindent = createHotkey(["shift+tab"]);
+
+export { Up, Down, Indent, Unindent };
