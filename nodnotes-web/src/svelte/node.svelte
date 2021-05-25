@@ -1,6 +1,7 @@
 <script>
-  import cls from "classnames";
+  import cls from "../classnames";
   import { onMount, tick } from "svelte";
+  import { store } from './store'
   import type { Node } from "../types";
   let editing = false;
   let textareaElement: HTMLTextAreaElement | undefined;
@@ -11,19 +12,31 @@
 
   async function handleRenderedContentClick() {
     editing = true;
-    await tick();
-    textareaElement?.focus();
+    $store.editingNodeID = id
   }
-  function handleInputBlur() {
+  function handleTextareaBlur() {
+    console.log("handle blur")
     editing = false;
+    $store.editingNodeID = ""
   }
 
   onMount(() => {
     console.log("nod id", id);
     if (editing) {
-      textareaElement?.focus();
+      $store.editingNodeID = id
     }
   });
+
+  $: if ($store.editingNodeID === id) {
+    (async () => {
+      await tick()
+      textareaElement?.focus();
+    })()
+  }
+
+  function handleTextareaChange(e) {
+    $store.nodes[id].content = e.target.value
+  }
 </script>
 
 <div>
@@ -43,9 +56,10 @@
           "inline-block": editing,
         }
       )}
-      bind:value={content}
-      on:blur={handleInputBlur}
+      on:change={handleTextareaChange}
+      on:blur={handleTextareaBlur}
       bind:this={textareaElement}
+      bind:value={content}
     />
     <div
       class={cls("align-middle inline-block leading-4 text-base", {

@@ -1,5 +1,5 @@
-import App from "./components/app.svelte";
-import "./tailwind.css";
+import App from "./svelte/app.svelte";
+import "./styles/tailwind.css";
 
 var app = new App({
   target: document.body,
